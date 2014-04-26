@@ -11,19 +11,19 @@ namespace TracertAs
         {
             var buffer = new byte[BufferSize];
             var result = new byte[0];
-            do
+            try
             {
-                try
+                int bytesRead;
+                while ((bytesRead = socket.Receive(buffer)) > 0)
                 {
-                    var bytesRead = socket.Receive(buffer);
                     Array.Resize(ref result, result.Length + bytesRead);
                     Array.Copy(buffer, 0, result, result.Length - bytesRead, bytesRead);
                 }
-                catch (SocketException)
-                {
-                    return result;
-                }
-            } while (socket.Available > 0);
+            }
+            catch (SocketException)
+            {
+                return result;
+            }
             return result;
         }
     }
