@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using TracertAs.Tracing;
@@ -30,19 +31,17 @@ namespace TracertAs
                 var info = trace.Select(WhoisHelper.GetIpInformation).ToArray();
                 PrintTrace(info, ip);
             }
-            Console.ReadKey(false);
         }
 
         private static void PrintTrace(IEnumerable<AddressInformation> trace, IPAddress destination)
         {
-            Console.WriteLine("Trace for {0}", destination);
             foreach (var addressInformation in trace)
                 Console.WriteLine(addressInformation);
         }
 
         private static void ShowHelp()
         {
-            Console.WriteLine("Usage: {0} [ip1 [ip2 ...]]", Environment.CommandLine[0]);
+            Console.WriteLine("Usage: {0} [ip1 [ip2 ...]]", Path.GetFileName(Environment.GetCommandLineArgs()[0]));
             Environment.Exit(0);
         }
     }

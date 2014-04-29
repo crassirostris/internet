@@ -15,6 +15,7 @@ namespace TracertAs.Tracing
 
         public static IEnumerable<IPAddress> Trace(IPAddress destinationAddress)
         {
+            Console.WriteLine("Tracing {0}...", destinationAddress);
             for (int i = 1; i < 256; i++)
             {
                 for (int j = 0; j < TriesCount; j++)
@@ -24,14 +25,18 @@ namespace TracertAs.Tracing
                         continue;
                     if (reply.Status == IPStatus.TtlExpired)
                     {
+                        Console.Write("{0} -> ", reply.Address);
                         yield return reply.Address;
                         break;
                     }
                     if (reply.Status == IPStatus.Success)
                     {
+                        Console.WriteLine("{0}", destinationAddress);
                         yield return destinationAddress;
                         yield break;
                     }
+                    if (j == TriesCount - 1)
+                        Console.Write("* -> ");
                 }
             }
         }
