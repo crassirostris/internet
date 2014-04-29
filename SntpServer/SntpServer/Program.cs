@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace SntpServer
 {
@@ -15,7 +16,7 @@ namespace SntpServer
 
         private static void ShowHelp()
         {
-            Console.WriteLine("Usage: {0} [time_delta]", Environment.CommandLine[0]);
+            Console.WriteLine("Usage: {0} [time_delta]", Path.GetFileName(Environment.GetCommandLineArgs()[0]));
             Environment.Exit(0);
         }
     }
