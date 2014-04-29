@@ -11,7 +11,8 @@ namespace TracertAs.Whois
             "Allocated to RIPE NCC",
             "Transferred to AfriNIC",
             "Transferred to APNIC",
-            "Transferred to LACNIC"
+            "Transferred to LACNIC",
+            "IANA Special Use"
         };
 
         public override string RirName
@@ -26,7 +27,7 @@ namespace TracertAs.Whois
 
         public override string FormWhoisQuery(IPAddress address)
         {
-            return String.Format("n + {0}", address);
+            return String.Format("n + {0}\r\n", address);
         }
 
         protected override AddressInformation ExtractInformation(IPAddress address, string record)

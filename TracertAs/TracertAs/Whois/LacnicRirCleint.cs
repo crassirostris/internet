@@ -11,7 +11,8 @@ namespace TracertAs.Whois
             "whois.afrinic.net",
             "whois.ripe.net",
             "whois.arin.net",
-            "whois.apnic.net"
+            "whois.apnic.net",
+            "Reserved:"
         };
 
         public override string RirName
@@ -26,7 +27,7 @@ namespace TracertAs.Whois
 
         public override string FormWhoisQuery(IPAddress address)
         {
-            return address.ToString();
+            return address.ToString() + "\r\n";
         }
 
         protected override AddressInformation ExtractInformation(IPAddress address, string record)

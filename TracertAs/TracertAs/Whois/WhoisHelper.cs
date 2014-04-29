@@ -16,9 +16,10 @@ namespace TracertAs.Whois
 
         public static AddressInformation GetIpInformation(IPAddress address)
         {
-            return clients
+            var result = clients
                 .Select(rirClient => rirClient.GetAddressInformation(address))
                 .FirstOrDefault(addrInfo => addrInfo != null);
+            return result ?? AddressInformation.GetUnknownAddressInformation(address);
         }
     }
 }

@@ -8,7 +8,8 @@ namespace TracertAs.Whois
     {
         private static readonly string[] generalRecordsFeatures =
         {
-            "0.0.0.0 - 255.255.255.255"
+            "0.0.0.0 - 255.255.255.255",
+            "address space for private internets"
         };
 
         public override string RirName
@@ -23,7 +24,7 @@ namespace TracertAs.Whois
 
         public override string FormWhoisQuery(IPAddress address)
         {
-            return address.ToString();
+            return address.ToString() + "\r\n";
         }
 
         protected override AddressInformation ExtractInformation(IPAddress address, string record)

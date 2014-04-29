@@ -49,16 +49,15 @@ namespace TracertAs.Whois
             var result = lines.LastOrDefault(e => e.StartsWith(prefix));
             if (result != null)
             {
-                var components = result.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                if (components.Length > 1)
-                    result = components[1];
+                var components = result.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                result = components.Length > 1 ? components[1].Trim() : "";
             }
             return result;
         }
 
-        protected virtual bool IsGeneralRecord(string record)
+        protected bool IsGeneralRecord(string record)
         {
-            return GeneralRecordsFeatures.All(feature => !record.Contains(feature));
+            return GeneralRecordsFeatures.Any(record.Contains);
         }
 
         protected abstract AddressInformation ExtractInformation(IPAddress address, string record);
