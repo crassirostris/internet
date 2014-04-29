@@ -15,7 +15,15 @@ namespace SntpServer
         private const decimal StartTimeOffset = (-1) * (decimal)(59926629600);
         private const int DefaultPort = 123;
 
-        public SntpUdpServer(int port, decimal timestampDelta = 0, List<IPEndPoint> references = null) : base(port)
+        private static int GetPort()
+        {
+            var portStr = ConfigurationManager.AppSettings["port"];
+            int port;
+            return int.TryParse(portStr, out port) ? port : DefaultPort;
+        }
+
+        public SntpUdpServer(decimal timestampDelta = 0, List<IPEndPoint> references = null)
+            : base(GetPort())
         {
             this.timestampDelta = timestampDelta;
             this.references = (references ?? new List<IPEndPoint>())
