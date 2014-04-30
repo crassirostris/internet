@@ -35,24 +35,19 @@ namespace PortScan
         {
             return Enumerable.Range(scanFrom, scanTo - scanFrom + 1)
                 .AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount / 2)
                 .Select(port => ScanPort(addr, port))
                 .Where(e => e.TransportLayerProtocols.Count > 0);
         }
 
         private static PortStatus ScanPort(IPAddress addr, int port)
         {
-            Console.WriteLine("Scanning {0}...", port);
             var status = new PortStatus(addr, port);
             foreach (var checker in transportLayerCheckers)
                 checker.Check(status);
             foreach (var checker in applicationLayerCheckers)
                 checker.Check(status);
-            if (status.ApplicationLevelProtocols.Count + status.TransportLayerProtocols.Count > 0)
-                Console.WriteLine(string.Join(Environment.NewLine, new []
-                {
-                    "Success!",
-                    status.ToString()
-                }));
+            Console.Write("{0} ", status.Port);
             return status;
         }
     }

@@ -1,3 +1,5 @@
+using System;
+
 namespace PortScan
 {
     internal class TcpChecker : PortChecker
@@ -6,11 +8,13 @@ namespace PortScan
         {
             try
             {
-                using (var socket = CreateTcpSocket(status))
-                    socket.Connect(status.Address, status.Port);
+                using (CreateTcpSocket(status))
+                {
+                }
                 status.TransportLayerProtocols.Add(TransportLayerProtocol.Tcp);
             }
-            catch { }
+            catch
+            { }
         }
     }
 }

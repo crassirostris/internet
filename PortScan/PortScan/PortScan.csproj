@@ -55,6 +55,7 @@
     <Compile Include="SocketHelper.cs" />
     <Compile Include="TcpChecker.cs" />
     <Compile Include="TransportLayerProtocol.cs" />
+    <Compile Include="WaitHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

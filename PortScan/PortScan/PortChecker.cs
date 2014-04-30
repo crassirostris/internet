@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PortScan
 {
@@ -17,6 +15,7 @@ namespace PortScan
                 ReceiveTimeout = SocketTimeout,
                 SendTimeout = SocketTimeout
             };
+            WaitHelper.Wait(() => sock.Connect(status.Address, status.Port), SocketTimeout);
             return sock;
         }
 
@@ -37,32 +36,5 @@ namespace PortScan
         }
 
         public abstract void Check(PortStatus status);
-    }
-
-    internal static class WaitHelper
-    {
-        public static void Wait(Action action, int timeout)
-        {
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(timeout);
-            try
-            {
-
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        action();
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }).Wait(cts.Token);
-            }
-            catch (Exception e)
-            {
-                throw e.InnerException;
-            }
-        }
     }
 }

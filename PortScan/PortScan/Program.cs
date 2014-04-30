@@ -24,7 +24,8 @@ namespace PortScan
                     continue;
                 }
                 var ip = ipAddresses.First(e => e.AddressFamily == AddressFamily.InterNetwork);
-                var portStatuses = ScanHelper.Scan(ip);
+                var portStatuses = ScanHelper.Scan(ip).ToArray();
+                Console.WriteLine();
                 foreach (var portStatus in portStatuses)
                     Console.WriteLine(portStatus);
             }
