@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 
 namespace TracertAs.Whois
@@ -8,8 +7,10 @@ namespace TracertAs.Whois
     {
         private static readonly string[] generalRecordsFeatures =
         {
-            "0.0.0.0 - 255.255.255.255",
-            "address space for private internets"
+            "inetnum:      0.0.0.0 - 255.255.255.255",
+            "inetnum:        0.0.0.0 - 255.255.255.255",
+            "address space for private internets",
+            "not managed by the RIPE NCC"
         };
 
         public override string RirName
@@ -24,7 +25,7 @@ namespace TracertAs.Whois
 
         public override string FormWhoisQuery(IPAddress address)
         {
-            return address.ToString() + "\r\n";
+            return address + "\r\n";
         }
 
         protected override AddressInformation ExtractInformation(IPAddress address, string record)

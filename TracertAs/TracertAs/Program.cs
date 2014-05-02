@@ -22,18 +22,12 @@ namespace TracertAs
                     Console.WriteLine("{0} is not an ip", ipString);
                     continue;
                 }
-                if (!TraceHelper.Traceable(ip))
-                {
-                    Console.WriteLine("Failed to trace address {0}", ip);
-                    continue;
-                }
                 var trace = TraceHelper.Trace(ip).ToArray();
-                var info = trace.Select(WhoisHelper.GetIpInformation).ToArray();
-                PrintTrace(info, ip);
+                PrintTrace(trace.Select(WhoisHelper.GetIpInformation));
             }
         }
 
-        private static void PrintTrace(IEnumerable<AddressInformation> trace, IPAddress destination)
+        private static void PrintTrace(IEnumerable<AddressInformation> trace)
         {
             foreach (var addressInformation in trace)
                 Console.WriteLine(addressInformation);

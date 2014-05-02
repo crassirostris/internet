@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 
 namespace TracertAs.Whois
@@ -12,7 +11,10 @@ namespace TracertAs.Whois
             "Transferred to AfriNIC",
             "Transferred to APNIC",
             "Transferred to LACNIC",
-            "IANA Special Use"
+            "IANA Special Use",
+            "Allocated to LACNIC",
+            "Allocated to APNIC",
+            "Allocated to AfriNIC",
         };
 
         public override string RirName
