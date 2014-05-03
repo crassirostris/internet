@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.Remoting.Services;
@@ -14,6 +15,11 @@ namespace TracertAs.Tracing
         private static readonly byte[] data = Encoding.ASCII.GetBytes("1234567890");
         private const int AllowedFailedPings = 2;
         private const int TriesCount = 3;
+
+        public static IEnumerable<IPAddress> GetTraceAddresses(IPAddress destinationAddress)
+        {
+            return Trace(destinationAddress).Distinct();
+        }
 
         public static IEnumerable<IPAddress> Trace(IPAddress destinationAddress)
         {

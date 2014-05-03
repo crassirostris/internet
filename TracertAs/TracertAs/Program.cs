@@ -22,7 +22,7 @@ namespace TracertAs
                     Console.WriteLine("{0} is not an ip", ipString);
                     continue;
                 }
-                var trace = TraceHelper.Trace(ip).ToArray();
+                var trace = TraceHelper.GetTraceAddresses(ip).ToArray();
                 PrintTrace(trace.Select(WhoisHelper.GetIpInformation));
             }
         }
