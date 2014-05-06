@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal class DnsScanner : ApplicationLayerPortScanner
     {

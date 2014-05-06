@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal abstract class ApplicationLayerPortScanner : IApplicationLayerPortScanner
     {

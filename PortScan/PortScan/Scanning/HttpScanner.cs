@@ -1,6 +1,7 @@
 ﻿using System.Text;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal class HttpScanner : ApplicationLayerPortScanner
     {

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Net;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal interface IApplicationLayerPortScanner
     {

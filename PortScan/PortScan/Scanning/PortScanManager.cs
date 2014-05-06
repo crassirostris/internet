@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal class PortScanManager
     {

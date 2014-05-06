@@ -1,4 +1,6 @@
-﻿namespace PortScan
+﻿using PortScan.Common;
+
+namespace PortScan.Scanning
 {
     internal class NtpScanner : ApplicationLayerPortScanner
     {

@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace PortScan
+namespace PortScan.Helpers
 {
     internal static class ConfigHelper
     {

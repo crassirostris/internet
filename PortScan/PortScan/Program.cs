@@ -4,6 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using PortScan.Common;
+using PortScan.Helpers;
+using PortScan.Scanning;
 
 namespace PortScan
 {

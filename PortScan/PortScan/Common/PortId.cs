@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PortScan
+namespace PortScan.Common
 {
     internal struct PortId
     {

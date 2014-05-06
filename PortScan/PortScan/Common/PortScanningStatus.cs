@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PortScan
+namespace PortScan.Common
 {
     internal class PortScanningStatus
     {

@@ -3,8 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using PortScan.Common;
 
-namespace PortScan
+namespace PortScan.Scanning
 {
     internal class TcpScanner : IPortScanner
     {

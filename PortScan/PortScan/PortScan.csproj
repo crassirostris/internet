@@ -43,22 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationLayerPortScanner.cs" />
-    <Compile Include="ApplicationProtocol.cs" />
-    <Compile Include="ConfigHelper.cs" />
-    <Compile Include="DnsScanner.cs" />
-    <Compile Include="HttpScanner.cs" />
-    <Compile Include="IApplicationLayerPortScanner.cs" />
-    <Compile Include="IPortScanner.cs" />
-    <Compile Include="NtpScanner.cs" />
-    <Compile Include="PortId.cs" />
-    <Compile Include="PortScanningStatus.cs" />
+    <Compile Include="Scanning\ApplicationLayerPortScanner.cs" />
+    <Compile Include="Common\ApplicationProtocol.cs" />
+    <Compile Include="Helpers\ConfigHelper.cs" />
+    <Compile Include="Scanning\DnsScanner.cs" />
+    <Compile Include="Scanning\HttpScanner.cs" />
+    <Compile Include="Scanning\IApplicationLayerPortScanner.cs" />
+    <Compile Include="Scanning\IPortScanner.cs" />
+    <Compile Include="Scanning\NtpScanner.cs" />
+    <Compile Include="Common\PortId.cs" />
+    <Compile Include="Common\PortScanningStatus.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PortScanManager.cs" />
-    <Compile Include="TcpScanner.cs" />
-    <Compile Include="TransportProtocol.cs" />
-    <Compile Include="UdpScanner.cs" />
+    <Compile Include="Scanning\PortScanManager.cs" />
+    <Compile Include="Scanning\TcpScanner.cs" />
+    <Compile Include="Common\TransportProtocol.cs" />
+    <Compile Include="Scanning\UdpScanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

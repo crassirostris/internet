@@ -1,4 +1,4 @@
-﻿namespace PortScan
+﻿namespace PortScan.Common
 {
     internal enum ApplicationProtocol
     {
