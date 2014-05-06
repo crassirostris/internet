@@ -11,12 +11,14 @@ namespace PortScan.Scanning
         private readonly Dictionary<PortId, string> portDescription;
         private readonly int scanFrom;
         private readonly int scanTo;
+        private readonly TransportProtocol[] protocolsToScan;
 
-        public PortScanManager(Dictionary<PortId, string> portDescription, int scanFrom, int scanTo)
+        public PortScanManager(Dictionary<PortId, string> portDescription, int scanFrom, int scanTo, TransportProtocol[] protocolsToScan)
         {
             this.portDescription = portDescription;
             this.scanFrom = scanFrom;
             this.scanTo = scanTo;
+            this.protocolsToScan = protocolsToScan;
         }
 
         private static readonly IPortScanner[] portScanners =
@@ -36,7 +38,7 @@ namespace PortScan.Scanning
         {
             var portScanningStatus = new PortScanningStatus();
             Console.WriteLine("Scanning ports...");
-            foreach (var scanner in portScanners)
+            foreach (var scanner in portScanners.Where(scanner => protocolsToScan.Contains(scanner.Protocol)))
                 scanner.Scan(addr, scanFrom, scanTo, portScanningStatus);
             Console.WriteLine("Found {0} opened ports", portScanningStatus.OpenPorts.Count);
             Console.WriteLine("Found {0} closed ports", portScanningStatus.ClosedPorts.Count);

@@ -19,11 +19,12 @@ namespace PortScan
 
         static void Main(string[] args)
         {
+            var protocolsToScan = GetProtocolsToScan(ref args);;
             if (args.Length < 1)
                 ShowHelp();
             int scanFrom = ConfigHelper.GetIntFromConfig("scanFrom", DefaultScanFrom);
             int scanTo = ConfigHelper.GetIntFromConfig("scanTo", DefaultScanTo);
-            var psm = new PortScanManager(new Dictionary<PortId, string>(), scanFrom, scanTo);
+            var psm = new PortScanManager(new Dictionary<PortId, string>(), scanFrom, scanTo, protocolsToScan);
             var portDescriptions = LoadPortDescriptinos();
             foreach (var addr in args)
             {
@@ -49,6 +50,22 @@ namespace PortScan
             }
         }
 
+        private static TransportProtocol[] GetProtocolsToScan(ref string[] args)
+        {
+            var result = new List<TransportProtocol>();
+            if (args.Contains("-u"))
+            {
+                args = args.Where(e => e != "-u").ToArray();
+                result.Add(TransportProtocol.Udp);
+            }
+            if (args.Contains("-t"))
+            {
+                args = args.Where(e => e != "-t").ToArray();
+                result.Add(TransportProtocol.Tcp);
+            }
+            return result.ToArray();
+        }
+
         private static Dictionary<PortId, string> LoadPortDescriptinos()
         {
             var lines = File.ReadAllLines(PortDescriptionsLocation);
@@ -71,7 +88,7 @@ namespace PortScan
 
         private static void ShowHelp()
         {
-            Console.WriteLine("Usage: {0} address1 [address2 ...]", Path.GetFileName(Environment.GetCommandLineArgs()[0]));
+            Console.WriteLine("Usage: {0} [-t] [-u] address1 [address2 ...]", Path.GetFileName(Environment.GetCommandLineArgs()[0]));
             Environment.Exit(0);
         }
     }

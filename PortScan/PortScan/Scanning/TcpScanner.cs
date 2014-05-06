@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -10,8 +11,11 @@ namespace PortScan.Scanning
     internal class TcpScanner : IPortScanner
     {
         private const int TimeoutMilliseconds = 1000;
+        private const int ScanningBulkSize = 1000;
 
-        public void Scan(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
+        public TransportProtocol Protocol { get { return TransportProtocol.Tcp; } }
+
+        private void ScanBulk(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
         {
             var sockets = new List<Socket>();
             foreach (var portNumber in Enumerable.Range(scanFrom, scanTo - scanFrom + 1))
@@ -34,6 +38,12 @@ namespace PortScan.Scanning
             Thread.Sleep(TimeoutMilliseconds);
             foreach (var socket in sockets)
                 socket.Dispose();
+        }
+
+        public void Scan(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
+        {
+            for (int scanBulkFrom = scanFrom; scanBulkFrom <= scanTo; scanBulkFrom += ScanningBulkSize)
+                ScanBulk(addr, scanBulkFrom, Math.Min(scanTo, scanBulkFrom + ScanningBulkSize), portScanningStatus);
         }
     }
 }

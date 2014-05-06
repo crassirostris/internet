@@ -12,11 +12,14 @@ namespace PortScan.Scanning
     {
         private const int PayloadSize = 1024;
         private const int TimeoutMilliseconds = 1000;
+        private const int ScanningBulkSize = 1000;
 
-        public void Scan(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
+        public TransportProtocol Protocol { get { return TransportProtocol.Udp; } }
+
+        private void ScanBulk(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
         {
             var sockets = new List<Socket>();
-            var random = new Random((int) DateTime.Now.ToFileTime());
+            var random = new Random((int)DateTime.Now.ToFileTime());
             var randomPayload = new byte[PayloadSize];
             random.NextBytes(randomPayload);
             foreach (var portNumber in Enumerable.Range(scanFrom, scanTo - scanFrom + 1))
@@ -34,7 +37,7 @@ namespace PortScan.Scanning
             Thread.Sleep(TimeoutMilliseconds);
             foreach (var socket in sockets)
             {
-                var portId = new PortId(TransportProtocol.Udp, ((IPEndPoint) socket.RemoteEndPoint).Port);
+                var portId = new PortId(TransportProtocol.Udp, ((IPEndPoint)socket.RemoteEndPoint).Port);
                 try
                 {
                     if (socket.Poll(0, SelectMode.SelectRead))
@@ -56,6 +59,12 @@ namespace PortScan.Scanning
                     socket.Close();
                 }
             }
+        }
+
+        public void Scan(IPAddress addr, int scanFrom, int scanTo, PortScanningStatus portScanningStatus)
+        {
+            for (int scanBulkFrom = scanFrom; scanBulkFrom <= scanTo; scanBulkFrom += ScanningBulkSize)
+                ScanBulk(addr, scanBulkFrom, Math.Min(scanTo, scanBulkFrom + ScanningBulkSize), portScanningStatus);
         }
     }
 }
