@@ -65,12 +65,9 @@ namespace DnsCache.Dns
                 {
                     lock (cache)
                     {
-                        if (cache.ContainsKey(question) && DateTime.Now > GetExpirationTime(question))
-                            cache.Remove(question);
-                        //TODO: Change condition
                         if (!questionLastTimeRequested.ContainsKey(question) || 
-                            (DateTime.Now - questionLastTimeRequested[question] < TimeSpan.FromSeconds(ForwarderAskingDelay) 
-                                && !cache.ContainsKey(question)))
+                            (!cache.ContainsKey(question) && DateTime.Now - questionLastTimeRequested[question] < TimeSpan.FromSeconds(ForwarderAskingDelay)) ||
+                            (cache.ContainsKey(question)  && DateTime.Now > GetExpirationTime(question)))
                         {
                             Monitor.Exit(cache);
                             AskForwarders(question);
