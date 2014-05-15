@@ -20,10 +20,10 @@ namespace DnsCache.Dns
         public bool IsRecursionDesired { get; set; }
         public bool IsRecursionAvaliable { get; set; }
         public DnsMessageResponseCode ResponseCode { get; set; }
-        public ushort QuestionsCount { get; set; }
-        public ushort AnswersCount { get; set; }
-        public ushort AuthorityCount { get; set; }
-        public ushort AdditionalCount { get; set; }
+        public ushort QuestionsCount { get { return (ushort) Questions.Count; } }
+        public ushort AnswersCount { get { return (ushort)Answers.Count; } }
+        public ushort AuthorityCount { get { return (ushort)Authority.Count; } }
+        public ushort AdditionalCount { get { return (ushort)Additional.Count; } }
 
         public List<QuestionResourceRecord> Questions
         {
@@ -77,30 +77,27 @@ namespace DnsCache.Dns
             result.IsRecursionAvaliable = (flags & (1 << 7)) > 0;
             result.ResponseCode = (DnsMessageResponseCode) (flags & 0xF);
 
-            result.QuestionsCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
+            var questionsCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
 
-            result.AnswersCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
+            var answersCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
 
-            result.AuthorityCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
+            var authorityCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
 
-            result.AdditionalCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
+            var additionalCount = BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
 
             offset += 2;
 
-            for (int i = 0; i < result.QuestionsCount; i++)
+            for (int i = 0; i < questionsCount; i++)
                 result.Questions.Add(QuestionResourceRecord.Parse(data, ref offset));
-            for (int i = 0; i < result.AnswersCount; i++)
+            for (int i = 0; i < answersCount; i++)
                 result.Answers.Add(ResourceRecord.Parse(data, ref offset));
-            for (int i = 0; i < result.AuthorityCount; i++)
+            for (int i = 0; i < authorityCount; i++)
                 result.Authority.Add(ResourceRecord.Parse(data, ref offset));
-            for (int i = 0; i < result.AdditionalCount; i++)
+            for (int i = 0; i < additionalCount; i++)
             {
                 var record = ResourceRecord.Parse(data, ref offset);
                 if (record.Type == ResourceRecordType.OPT)
-                {
-                    result.AdditionalCount = (ushort) i;
                     break;
-                }
                 result.Additional.Add(record);
             }
 
@@ -113,14 +110,14 @@ namespace DnsCache.Dns
             result = result.Concat(BitConverter.GetBytes(Id).Reverse());
 
             ushort flags = 0;
-            flags = (ushort)((flags) | ((ushort)Type) << 1);
-            flags = (ushort)((flags) | ((ushort)Opcode) << 4);
-            flags = (ushort)((flags) | (IsAuthoritativeAnswer ? 1 : 0) << 1);
-            flags = (ushort)((flags) | (IsTruncated ? 1 : 0) << 1);
-            flags = (ushort)((flags) | (IsRecursionDesired ? 1 : 0) << 1);
-            flags = (ushort)((flags) | (IsRecursionAvaliable ? 1 : 0) << 1);
-            flags = (ushort)((flags) | (0) << 3);
-            flags = (ushort)((flags) | (ushort) ResponseCode);
+            flags = (ushort)((flags | ((ushort)Type)) << 4);
+            flags = (ushort)((flags | ((ushort)Opcode)) << 1);
+            flags = (ushort)((flags | (IsAuthoritativeAnswer ? 1 : 0)) << 1);
+            flags = (ushort)((flags | (IsTruncated ? 1 : 0)) << 1);
+            flags = (ushort)((flags | (IsRecursionDesired ? 1 : 0)) << 1);
+            flags = (ushort)((flags | (IsRecursionAvaliable ? 1 : 0)) << 3);
+            flags = (ushort)((flags | (0)) << 4);
+            flags = (ushort)((flags | (ushort) ResponseCode));
             result = result.Concat(BitConverter.GetBytes(flags).Reverse());
 
             result = result.Concat(BitConverter.GetBytes(QuestionsCount).Reverse());

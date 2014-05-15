@@ -72,7 +72,7 @@ namespace DnsCache.Dns.ResourceRecords
             {
                 return false;
             }
-            var other = (ResourceRecord)obj;
+            var other = (QuestionResourceRecord)obj;
             return Name == other.Name
                    && Type == other.Type
                    && Class == other.Class;

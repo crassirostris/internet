@@ -31,11 +31,7 @@ namespace DnsCache.Servers
                     var result = action(localBuffer);
                     if (result == null)
                         return;
-                    using (var client = new UdpClient())
-                    {
-                        client.Connect((IPEndPoint) remoteEp);
-                        client.Send(result, result.Length);
-                    }
+                    socket.SendTo(result, remoteEp);
                 }
                 catch (Exception e)
                 {

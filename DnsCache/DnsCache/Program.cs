@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using DnsCache.Dns;
 using DnsCache.Helpers;
 using DnsCache.Servers;
@@ -15,6 +16,8 @@ namespace DnsCache
         {
             var nameservers = GetNameserversFromInterfaces().
                 Concat(GetNameserversFromConfig())
+                .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
+                .Reverse()
                 .ToArray();
             if (nameservers.Length == 0)
             {

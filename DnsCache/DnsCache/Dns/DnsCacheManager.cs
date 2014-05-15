@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Configuration;
 using System.Net.Sockets;
 using System.Threading;
 using DnsCache.Dns.ResourceRecords;
@@ -18,6 +19,7 @@ namespace DnsCache.Dns
         private const int ForwarderAskingDelay = 10 * 60;
         private const int DefaultTimeout = 1;
         private const int DefaultDnsPort = 53;
+        private const int DefaultRecievePacketSize = 1024;
 
         public DnsCacheManager(IPAddress[] nameservers)
         {
@@ -65,7 +67,7 @@ namespace DnsCache.Dns
                     {
                         if (cache.ContainsKey(question) && DateTime.Now > GetExpirationTime(question))
                             cache.Remove(question);
-
+                        //TODO: Change condition
                         if (!questionLastTimeRequested.ContainsKey(question) || 
                             (DateTime.Now - questionLastTimeRequested[question] < TimeSpan.FromSeconds(ForwarderAskingDelay) 
                                 && !cache.ContainsKey(question)))
@@ -108,12 +110,12 @@ namespace DnsCache.Dns
 
         private void AskForwarders(QuestionResourceRecord question)
         {
-            var questionMessage = GetQuestionMessage(question);
+            var questionMessage = GetQuestionMessage(question).GetBytes();
             foreach (var nameserver in nameservers)
             {
                 try
                 {
-                    var answer = AskForwarder(questionMessage.GetBytes(), nameserver);
+                    var answer = AskForwarder(questionMessage, nameserver);
                     lock (cache)
                         cache[question] = answer;
                     break;
@@ -127,20 +129,20 @@ namespace DnsCache.Dns
         {
             var result = new DnsMessage();
             result.Id = (ushort)new Random((int)DateTime.Now.ToFileTime()).Next();
-            result.QuestionsCount = 1;
             result.Questions.Add(question);
             return result;
         }
 
         private static DnsMessage AskForwarder(byte[] packet, IPAddress nameserver)
         {
-            using (var udpClient = new UdpClient(AddressFamily.InterNetwork) { Client = { ReceiveTimeout = DefaultTimeout, SendTimeout = DefaultTimeout } })
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp) { ReceiveTimeout = DefaultTimeout, SendTimeout = DefaultTimeout })
             {
-                udpClient.Connect(nameserver, DefaultDnsPort);
-                udpClient.Send(packet, packet.Length);
-                IPEndPoint remoteEp = null;
-                var data = udpClient.Receive(ref remoteEp);
-                return DnsMessage.Parse(data);
+                socket.Connect(nameserver, DefaultDnsPort);
+                socket.Send(packet);
+                var data = new byte[DefaultRecievePacketSize];
+                socket.Poll(DefaultTimeout * 1000 * 1000, SelectMode.SelectRead);
+                var length = socket.Receive(data);
+                return DnsMessage.Parse(data.Take(length).ToArray());
             }
         }
     }
