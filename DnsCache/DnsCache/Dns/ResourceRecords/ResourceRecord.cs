@@ -68,7 +68,7 @@ namespace DnsCache.Dns.ResourceRecords
                 if (length >> 6 == 0)
                 {
                     for (int i = 0; i < length; i++)
-                        name.Append((char) data[pointer + i]);
+                        name.Append((char) data[pointer++]);
                     name.Append('.');
                 }
                 if (length >> 6 == 3)
