@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace Pop3
 {
@@ -31,7 +30,7 @@ namespace Pop3
                 string.Format("Message #{0} ({1} bytes long)", Number, Length),
                 string.Format("From:    {0}", From ?? "<Unknown Sender>"),
                 string.Format("To:      {0}", To ?? "<Unknown Recipient>"),
-                string.Format("Subject: {0}", Subject ?? "<No Subject>"),
+                string.Format("Subject: {0}", Subject ?? "<No Subject>")
             });
         }
     }
@@ -40,52 +39,69 @@ namespace Pop3
     {
         private const int BufferSize = 1024;
         private const int ServerPort = 110;
+        private const int DefaultTimeout = 1000;
         private const string Pop3LineEnding = "\r\n";
         private static readonly byte[] buffer = new byte[BufferSize];
         private static readonly byte[] multilineTerminatingSequence = Encoding.ASCII.GetBytes(Pop3LineEnding + "." + Pop3LineEnding);
         private static readonly Regex encodingRegex = new Regex(@"charset=(\S+)");
         private static readonly Regex encodedPartRegex = new Regex(@"\=\?([^?]+)\?([BQbq])\?([^?]+)\?\=");
+        private static Socket socket;
+        private static IPAddress server;
+        private static string username;
+        private static string password;
 
-        private static string[] Communicate(Socket socket, string message = null, bool multiline = false)
+        private static string[] Communicate(string message = null, bool multiline = false)
         {
-            var terminatingSequence = multiline ? multilineTerminatingSequence : Encoding.ASCII.GetBytes(Pop3LineEnding);
-            if (message != null)
-                socket.Send(Encoding.ASCII.GetBytes(message + Pop3LineEnding));
-
-            var result = Enumerable.Empty<byte>();
-
-            int length;
-            while ((length = socket.Receive(buffer)) > 0)
-            {
-                result = result.Concat(buffer.Take(length).ToArray());
-                if (buffer.Take(length)
-                        .Reverse()
-                        .Take(terminatingSequence.Length)
-                        .Reverse()
-                        .SequenceEqual(terminatingSequence))
-                    break;
-            }
-
-            var resultedBytes = result.ToArray();
-
-            var str = Encoding.ASCII.GetString(resultedBytes);
-            var m = encodingRegex.Match(str);
-            if (m.Success)
+            while (true)
             {
                 try
                 {
-                    var encodingName = m.Groups[1].Value.Replace("\"", "").Replace(";", "");
-                    var encoding = Encoding.GetEncoding(encodingName);
-                    str = encoding.GetString(resultedBytes);
-                }
-                catch
-                { }
-            }
+                    var terminatingSequence = multiline ? multilineTerminatingSequence : Encoding.ASCII.GetBytes(Pop3LineEnding);
+                    if (message != null)
+                        socket.Send(Encoding.ASCII.GetBytes(message + Pop3LineEnding));
 
-            return str
-                .Split(new[] { Pop3LineEnding }, StringSplitOptions.None)
-                .Select(s => s.StartsWith(".") ? s.Substring(1) : s)
-                .ToArray();
+                    var result = Enumerable.Empty<byte>();
+
+                    int length;
+                    while ((length = socket.Receive(buffer)) > 0)
+                    {
+                        result = result.Concat(buffer.Take(length).ToArray());
+                        if (buffer.Take(length)
+                                .Reverse()
+                                .Take(terminatingSequence.Length)
+                                .Reverse()
+                                .SequenceEqual(terminatingSequence))
+                            break;
+                    }
+
+                    var resultedBytes = result.ToArray();
+
+                    var str = Encoding.ASCII.GetString(resultedBytes);
+                    var m = encodingRegex.Match(str);
+                    if (m.Success)
+                    {
+                        try
+                        {
+                            var encodingName = m.Groups[1].Value.Replace("\"", "").Replace(";", "");
+                            var encoding = Encoding.GetEncoding(encodingName);
+                            str = encoding.GetString(resultedBytes);
+                        }
+                        catch
+                        { }
+                    }
+
+                    return str
+                        .Split(new[] { Pop3LineEnding }, StringSplitOptions.None)
+                        .Select(s => s.StartsWith(".") ? s.Substring(1) : s)
+                        .ToArray();
+                }
+                catch (SocketException e)
+                {
+                    if (e.ErrorCode == 10060)
+                        Console.WriteLine("Timeout. Reconnecting...");
+                    RecreateSocket();
+                }
+            }
         }
 
         private static bool IsFailResponse(string[] response)
@@ -138,56 +154,64 @@ namespace Pop3
             return result.ToArray();
         }
 
+        private static void RecreateSocket()
+        {
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) { ReceiveTimeout = DefaultTimeout, SendTimeout = DefaultTimeout};
+            socket.Connect(new IPEndPoint(server, ServerPort));
+            try
+            {
+                if (socket.Receive(buffer) == 0 || buffer[0] == '-')
+                    Exit("Server failed");
+                socket.Send(Encoding.ASCII.GetBytes("USER " + username + Pop3LineEnding));
+                if (socket.Receive(buffer) == 0 || buffer[0] == '-')
+                    Exit("Failed to authenticate: invalid username");
+                socket.Send(Encoding.ASCII.GetBytes("PASS " + password + Pop3LineEnding));
+                if (socket.Receive(buffer) == 0 || buffer[0] == '-')
+                    Exit("Failed to authenticate: invalid password");
+            }
+            catch (SocketException)
+            {
+                Exit("Failed to Authenticate");
+            }
+        }
+
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
             if (args.Length < 3)
                 Exit(null, true);
 
-            var server = GetServer(args[0]);
-            var username = args[1];
-            var password = args[2];
+            server = GetServer(args[0]);
+            username = args[1];
+            password = args[2];
+
+            RecreateSocket();
 
             try
             {
-                using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                var list = Communicate("LIST", true);
+                if (IsFailResponse(list))
+                    Exit("Failed to list mailbox");
+                foreach (var message in list
+                    .Skip(1)
+                    .Where(e => e != String.Empty)
+                    .Select(s => s.Split(' '))
+                    .Select(chunks => new Message(int.Parse(chunks[0]), int.Parse(chunks[1]))))
                 {
-                    socket.Connect(new IPEndPoint(server, ServerPort));
+                    var headers =
+                        Communicate(string.Format("TOP {0} 0", message.Number), true).Skip(1).ToArray();
+                    headers = ParseHeaders(headers);
+                    headers = headers
+                        .Select(Decode)
+                        .ToArray();
 
-                    if (IsFailResponse(Communicate(socket)))
-                        Exit("Server failed");
-                    if (IsFailResponse(Communicate(socket, "USER " + username)))
-                        Exit("Failed to authorize: invalid username");
-                    if (IsFailResponse(Communicate(socket, "PASS " + password)))
-                        Exit("Failed to authorize: invalid password");
-                    var list = Communicate(socket, "LIST", true);
-                    if (IsFailResponse(list))
-                        Exit("Failed to list mailbox");
-                    foreach (var message in list
-                        .Skip(1)
-                        .Where(e => e != String.Empty)
-                        .Select(s => s.Split(' '))
-                        .Select(chunks => new { Number = int.Parse(chunks[0]), Length = int.Parse(chunks[1]) }))
-                    {
-                        Console.WriteLine("Message number: {0}", message.Number);
-                        Console.WriteLine("Message length: {0}", message.Length);
+                    message.From = ExtractField(headers, "From");
+                    message.Subject = ExtractField(headers, "Subject");
+                    message.To = ExtractField(headers, "To");
 
-                        var headers = Communicate(socket, string.Format("TOP {0} 0", message.Number), true).Skip(1).ToArray();
-                        headers = ParseHeaders(headers);
-                        headers = headers
-                            .Select(Decode)
-                            .ToArray();
-
-                        ExtractField(headers, "From");
-                        ExtractField(headers, "Subject");
-
-                        Console.WriteLine();
-                    }
+                    Console.WriteLine(message);
+                    Console.WriteLine();
                 }
-            }
-            catch (SocketException)
-            {
-                Exit("Failed to communicate with server");
             }
             catch
             {
@@ -195,13 +219,11 @@ namespace Pop3
             }
         }
 
-        private static string[] ParseHeaders(string[] headers)
+        private static string[] ParseHeaders(IEnumerable<string> headers)
         {
             var newHeaders = new List<string>();
-            foreach (var header in headers)
+            foreach (var header in headers.Where(header => header != String.Empty))
             {
-                if (header == String.Empty)
-                    continue;
                 if (header[0] == ' ' || header[0] == '\t')
                     newHeaders[newHeaders.Count - 1] = newHeaders[newHeaders.Count - 1] + header.Substring(1);
                 else
@@ -210,9 +232,10 @@ namespace Pop3
             return newHeaders.ToArray();
         }
 
-        private static void ExtractField(IEnumerable<string> messageBody, string fieldName)
+        private static string ExtractField(IEnumerable<string> messageBody, string fieldName)
         {
-            Console.WriteLine("{0}", messageBody.FirstOrDefault(e => e.ToLower().StartsWith(fieldName.ToLower())) ?? String.Empty);
+            var result = messageBody.FirstOrDefault(e => e.ToLower().StartsWith(fieldName.ToLower()));
+            return result == null ? null : result.Substring(result.IndexOf(':') + 1);
         }
 
         private static IPAddress GetServer(string addrStr)
