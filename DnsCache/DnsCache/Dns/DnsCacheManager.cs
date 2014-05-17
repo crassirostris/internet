@@ -70,6 +70,7 @@ namespace DnsCache.Dns
                             (cache.ContainsKey(question)  && DateTime.Now > GetExpirationTime(question)))
                         {
                             Monitor.Exit(cache);
+                            Console.WriteLine("Cache miss on {0} {1} {2}", question.Name, question.Type, question.Class);
                             AskForwarders(question);
                             Monitor.Enter(cache);
                             questionLastTimeRequested[question] = DateTime.Now;

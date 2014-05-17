@@ -33,10 +33,8 @@ namespace DnsCache.Servers
                         return;
                     socket.SendTo(result, remoteEp);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                catch
+                { }
             });
         }
 
