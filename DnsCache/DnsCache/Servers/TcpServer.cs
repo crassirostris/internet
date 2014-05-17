@@ -26,10 +26,8 @@ namespace DnsCache.Servers
                     ProcessClient(clientSocket);
                     clientSocket.Close();
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                catch
+                { }
             });
         }
 
