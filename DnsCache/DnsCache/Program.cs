@@ -25,7 +25,7 @@ namespace DnsCache
                 Environment.Exit(0);
             }
             var dnsCacheManager = new DnsCacheManager(nameservers);
-            var servers = CreateServer(dnsCacheManager);
+            var servers = CreateServer(dnsCacheManager).ToArray();
             foreach (var server in servers)
                 server.Run();
         }

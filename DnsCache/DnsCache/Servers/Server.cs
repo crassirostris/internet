@@ -32,13 +32,19 @@ namespace DnsCache.Servers
                 InitializeListener();
                 while (true)
                 {
-                    ProcessConnection();
+                    try
+                    {
+                        ProcessConnection();
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is ObjectDisposedException)
+                            break;
+                    }
                 }
             }
-            catch (SocketException e)
-            {
-                Console.Write(e);
-            }
+            catch
+            { }
         }
 
         protected abstract void ProcessConnection();
