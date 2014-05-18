@@ -8,6 +8,21 @@ namespace DnsCache.Dns.ResourceRecords
     internal class ResourceRecord
     {
         private byte[] data = new byte[0];
+
+        public ResourceRecord(ResourceRecord other)
+        {
+            Name = other.Name;
+            Type = other.Type;
+            Class = other.Class;
+            Ttl = other.Ttl;
+            DataLength = other.DataLength;
+            Data = other.Data;
+        }
+
+        public ResourceRecord()
+        {
+        }
+
         public string Name { get; set; }
         public ResourceRecordType Type { get; set; }
         public ResourceRecordClass Class { get; set; }

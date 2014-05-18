@@ -80,13 +80,24 @@ namespace DnsCache.Dns
                             continue;
 
                         var questionAnswer = cache[question];
-                        answer.Answers.AddRange(questionAnswer.Answers);
-                        answer.Authority.AddRange(questionAnswer.Authority);
-                        answer.Additional.AddRange(questionAnswer.Additional);
+                        var elapsedSeconds = (DateTime.Now - questionLastTimeRequested[question]).Seconds;
+                        answer.Answers.AddRange(AdjustTtl(questionAnswer.Answers, elapsedSeconds));
+                        answer.Authority.AddRange(AdjustTtl(questionAnswer.Authority, elapsedSeconds));
+                        answer.Additional.AddRange(AdjustTtl(questionAnswer.Additional, elapsedSeconds));
                     }
                 }
             }
             return answer;
+        }
+
+        private IEnumerable<ResourceRecord> AdjustTtl(IEnumerable<ResourceRecord> resourceRecords, int adjustValue)
+        {
+            return resourceRecords.Select(e =>
+            {
+                var result = new ResourceRecord(e);
+                result.Ttl = (uint) Math.Max(0, result.Ttl - adjustValue);
+                return result;
+            });
         }
 
         private DateTime GetExpirationTime(QuestionResourceRecord question)
