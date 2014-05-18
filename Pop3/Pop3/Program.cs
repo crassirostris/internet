@@ -95,7 +95,7 @@ namespace Pop3
                         .Select(s => s.StartsWith(".") ? s.Substring(1) : s)
                         .ToArray();
                 }
-                catch (SocketException e)
+                catch
                 {
                     RecreateSocket();
                 }
@@ -238,7 +238,7 @@ namespace Pop3
 
         private static IPAddress GetServer(string addrStr)
         {
-            var addr = Dns.GetHostAddresses(addrStr).FirstOrDefault();
+            var addr = Dns.GetHostAddresses(addrStr).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
             if (addr == null)
                 Exit("Filed to resolve server address");
             return addr;
