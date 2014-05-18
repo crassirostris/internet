@@ -97,8 +97,6 @@ namespace Pop3
                 }
                 catch (SocketException e)
                 {
-                    if (e.ErrorCode == 10060)
-                        Console.WriteLine("Timeout. Reconnecting...");
                     RecreateSocket();
                 }
             }
