@@ -45,14 +45,23 @@ namespace DnsCache.Dns.ResourceRecords
             result.Class = (ResourceRecordClass) BitConverter.ToUInt16(data.Skip(offset += 2).Take(2).Reverse().ToArray(), 0);
             result.Ttl = BitConverter.ToUInt32(data.Skip(offset += 2).Take(4).Reverse().ToArray(), 0);
             result.DataLength = BitConverter.ToUInt16(data.Skip(offset += 4).Take(2).Reverse().ToArray(), 0);
-            result.Data = data.Skip(offset += 2).Take(result.DataLength).ToArray();
-            offset += result.DataLength;
+            if (result.Type == ResourceRecordType.CNAME || result.Type == ResourceRecordType.NS)
+            {
+                offset += 2;
+                result.Data = NameToBytes(ReadName(data, ref offset)).ToArray();
+                result.DataLength = result.Data.Length;
+            }
+            else
+            {
+                result.Data = data.Skip(offset += 2).Take(result.DataLength).ToArray();
+                offset += result.DataLength;
+            }
             return result;
         }
 
         public byte[] GetBytes()
         {
-            return NameToBytes()
+            return NameToBytes(Name)
                 .Concat(BitConverter.GetBytes((ushort)Type).Reverse())
                 .Concat(BitConverter.GetBytes((ushort)Class).Reverse())
                 .Concat(BitConverter.GetBytes(Ttl).Reverse())
@@ -62,10 +71,10 @@ namespace DnsCache.Dns.ResourceRecords
 
         }
 
-        private IEnumerable<byte> NameToBytes()
+        private static IEnumerable<byte> NameToBytes(string name)
         {
             var result = Enumerable.Empty<byte>();
-            foreach (var chunk in Name.Split(new[] { '.' }))
+            foreach (var chunk in name.Split(new[] { '.' }))
             {
                 result = result.Concat(new[] { (byte)chunk.Length });
                 result = result.Concat(chunk.Select(ch => (byte)ch));

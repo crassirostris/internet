@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Configuration;
 using System.Net.Sockets;
 using System.Threading;
 using DnsCache.Dns.ResourceRecords;
@@ -113,7 +112,7 @@ namespace DnsCache.Dns
         private DnsMessage GetEmptyResponseMessage(DnsMessage query)
         {
             var result = DnsMessage.Parse(query.GetBytes());
-            result.Type = DnsMessageType.Response;
+            result.Type = DnsMessageType.Response;  
             return result;
         }
 
@@ -126,7 +125,21 @@ namespace DnsCache.Dns
                 {
                     var answer = AskForwarder(questionMessage, nameserver);
                     lock (cache)
+                    {
                         cache[question] = answer;
+                        foreach (var record in answer.Answers)
+                            if (record.Type == ResourceRecordType.A && record.Name != question.Name)
+                            {
+                                var q = new QuestionResourceRecord
+                                {
+                                    Name = record.Name,
+                                    Class = record.Class,
+                                    Type = record.Type
+                                };
+                                cache[q] = answer;
+                                questionLastTimeRequested[q] = DateTime.Now;
+                            }
+                    }
                     break;
                 }
                 catch
